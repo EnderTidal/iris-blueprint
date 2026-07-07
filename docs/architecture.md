@@ -255,6 +255,38 @@ A master cron runs at midnight:
 
 This means crons self-heal. If any die during the day, midnight restores them. They also recreate on every session startup as a belt-and-suspenders measure.
 
+### How Claude Code Crons Work
+
+Claude Code provides a `CronCreate` tool that schedules prompt-based execution on a cron expression. Here's what you need to know:
+
+**Session-level scheduling.** Crons are created within a Claude Code session using the `CronCreate` tool. Each cron has a name, a cron expression (standard 5-field format), and a prompt — the text that Claude Code will execute when the cron fires.
+
+**Prompt-based execution.** When a cron triggers, Claude Code starts a new sub-session and runs the prompt as if the user typed it. The prompt has full access to all tools, MCP servers, and the `CLAUDE.md` context. This means a cron can run SQL queries, SSH to servers, call APIs, send messages — anything the assistant can do interactively.
+
+**7-day auto-expiry.** Crons expire after 7 days by default. This is a safety mechanism — it prevents orphaned crons from running indefinitely if the system is abandoned. It also means crons must be actively recreated.
+
+**Recreated on startup via the heartbeat manifest.** The assistant reads a `heartbeat-manifest.md` file during Phase 1 of startup and calls `CronCreate` for every cron defined in the manifest. This means crons are recreated every time a new session starts — typically daily. The 7-day expiry is irrelevant in practice because crons are refreshed far more frequently.
+
+**Self-renewal at midnight.** A master cron runs at midnight that reads the manifest and recreates any missing crons. This handles the edge case where a session runs for multiple days without restart — the midnight cron ensures nothing expires mid-session.
+
+**No persistent daemon.** There is no separate cron service or background process. Crons only run while a Claude Code session is active. If Claude Code is not running, no crons fire. This is a conscious trade-off: simplicity over uptime. For truly always-on tasks, use a system-level cron or a workflow engine like n8n.
+
+```
+Startup                    Midnight Self-Renewal
+   │                              │
+   ▼                              ▼
+Read heartbeat-manifest     Read heartbeat-manifest
+   │                              │
+   ▼                              ▼
+CronCreate × N             CronList (check existing)
+   │                              │
+   ▼                              ▼
+All crons active            Recreate missing crons
+   │                              │
+   ▼                              ▼
+7-day expiry timer starts   Expiry timers reset
+```
+
 ### Example Crons
 
 | Time | Name | Purpose |

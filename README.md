@@ -4,7 +4,7 @@
 
 IRIS (Integrated Recursive Intelligence System) is a real system that has been running in production since early 2026 — managing communications, scheduling, task execution, overnight autonomous work, and multi-channel operations across a portfolio of businesses. This repository documents the architecture, patterns, and schema behind it so others can build their own.
 
-This is not a toy. It manages 30+ database tables, 25+ scheduled crons, 5 communication channels, overnight autonomous work execution, semantic search across 4,000+ embedded documents, and a 6-phase startup sequence that restores full operational context in under 60 seconds.
+It manages 20+ core database tables (the production system runs 120+), 25+ scheduled crons, 5 communication channels, overnight autonomous work execution, semantic search across 4,000+ embedded documents, and a 6-phase startup sequence that restores full operational context in under 60 seconds.
 
 ---
 
@@ -28,10 +28,10 @@ This is not a toy. It manages 30+ database tables, 25+ scheduled crons, 5 commun
          +----------+---------+--------+---------+-------+--------+
          |          |         |        |         |       |        |
      PostgreSQL   Qdrant   Telegram  Google    Gmail   n8n    Cloudflare
-     (30 tables)  (vector  (multi-   Calendar         (workflow  (Pages,
-                   search,  channel,                   engine)   Workers)
-                   4 colls) persona
-                            routing)
+     (20+ core   (vector  (multi-   Calendar         (workflow  (Pages,
+      tables)     search,  channel,                   engine)   Workers)
+                  4 colls) persona
+                           routing)
 ```
 
 ### How It Works
@@ -123,11 +123,15 @@ When a user corrects the assistant ("don't do X, do Y"), that correction needs t
 ```
 iris-blueprint/
   README.md                              # This file
+  CHANGELOG.md                           # System evolution timeline
   docs/
     architecture.md                      # Detailed architecture deep-dive
     setup-guide.md                       # Step-by-step setup instructions
   schema/
     tables.sql                           # CREATE TABLE statements for all tables
+  scripts/
+    embed-conversations.js               # Nightly conversation embedding pipeline
+    qdrant-search.js                     # Semantic search across Qdrant collections
   templates/
     claude-md-template.md                # Sanitized CLAUDE.md template
     heartbeat-manifest-template.md       # Example cron manifest
@@ -135,6 +139,8 @@ iris-blueprint/
       SKILL.md
   examples/
     capabilities.md                      # Real use case walkthroughs
+    brief-skill/                         # Complete example skill (morning briefing)
+      SKILL.md
   .gitignore
 ```
 

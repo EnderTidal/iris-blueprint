@@ -125,8 +125,8 @@ curl -X PUT "http://localhost:6333/collections/knowledge_base" \
     }
   }'
 
-# Conversation history — for embedded conversation summaries
-curl -X PUT "http://localhost:6333/collections/conversation_history" \
+# Conversation history — compressed conversation summaries
+curl -X PUT "http://localhost:6333/collections/telegram_history" \
   -H "api-key: YOUR_QDRANT_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -141,25 +141,33 @@ The vector dimension (3072) matches Gemini's `gemini-embedding-001` model. Adjus
 
 ### Embedding Script
 
-Create a script that:
+The repository includes a working embedding script at `scripts/embed-conversations.js`. Set the required environment variables and run:
 
-1. Queries `message_log WHERE embedded = false`
-2. Groups by 30-minute gaps into conversation batches
-3. Generates a summary for each batch (use Claude or Gemini)
-4. Embeds the summary (use Gemini `gemini-embedding-001` or OpenAI `text-embedding-3-large`)
-5. Upserts to Qdrant
-6. Marks rows as `embedded = true`
+```bash
+export DATABASE_URL="postgresql://user:pass@localhost:5432/iris_db"
+export GEMINI_API_KEY="your-gemini-key"
+export QDRANT_URL="http://localhost:6333"
+export QDRANT_API_KEY="your-qdrant-key"
+
+node scripts/embed-conversations.js
+```
+
+The script queries `message_log WHERE embedded = false`, groups messages into batches by 30-minute gaps, summarizes each batch with Gemini, embeds the summary, upserts to Qdrant's `telegram_history` collection, and marks rows as embedded.
 
 ### Search Script
 
-Create a search script that:
+The repository includes a working search script at `scripts/qdrant-search.js`:
 
-1. Takes a collection name and query string
-2. Embeds the query
-3. Searches Qdrant with the embedded vector
-4. Returns top N results with payloads
+```bash
+export GEMINI_API_KEY="your-gemini-key"
+export QDRANT_URL="http://localhost:6333"
+export QDRANT_API_KEY="your-qdrant-key"
 
-Example usage: `node qdrant-search.js knowledge_base "pricing strategy" 5`
+node scripts/qdrant-search.js knowledge_base "pricing strategy" 5
+node scripts/qdrant-search.js telegram_history "what did we discuss about caching" 3
+```
+
+The script embeds the query via Gemini, searches the specified Qdrant collection with cosine similarity, and returns the top N results with payloads.
 
 ---
 

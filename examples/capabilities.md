@@ -285,7 +285,7 @@ Qdrant stores embedded content across multiple collections, searchable with natu
 | Collection | Contents | Size |
 |-----------|----------|------|
 | knowledge_base | Book highlights, articles, conversation insights | 4,000+ points |
-| conversation_history | Compressed conversation summaries | 300+ points |
+| telegram_history | Compressed conversation summaries | 300+ points |
 | coaching_context | Coaching frameworks, methodologies | 500+ points |
 
 ### How It's Used
