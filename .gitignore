@@ -1,0 +1,8 @@
+.env
+*.key
+*.pem
+credentials.json
+secrets.json
+node_modules/
+.DS_Store
+Thumbs.db
