@@ -167,3 +167,5 @@ The system has been in continuous production use since early 2026, managing comm
 ## License
 
 MIT
+
+*Note: Commit history squashed from private development repo. Public since July 2026.*
